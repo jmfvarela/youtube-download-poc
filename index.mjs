@@ -10,31 +10,42 @@ import keys from './keys';
 const ONLY_AUDIO = true;
 
 // SMOKE TESTS
+// Clear English Corner with Keenyn Rhodes - Welcome to Clear English Corner!
 //downloadVideo("https://www.youtube.com/watch?v=l4vyyIu6r8g");
-//downloadPlaylist("PLpEsvqK-KhCv9DTtuFZFPdvtzQjpt1_UW");
-//downloadVideosByChannel("UCNmQim1VX0mtyRH8Oe7bSSA");
+// Clear English Corner with Keenyn Rhodes - Connected Speech, Linking & Reductions
+//downloadPlaylist("PLpEsvqK-KhCv9DTtuFZFPdvtzQjpt1_UW"); 
+// Clear English Corner with Keenyn Rhodes
+//downloadVideosByChannel("UCNmQim1VX0mtyRH8Oe7bSSA"); 
+// Speak Confident English
+//downloadVideosByChannel("UCEFLuo9AR7268-qJj1FkmSw"); 
 
-async function downloadPlaylist(playlistId) {
-    const youtubeAPI = `https://www.googleapis.com/youtube/v3/playlistItems?key=${keys.API_KEY}&part=snippet&maxResults=50`;
+async function downloadPlaylist(playlistId, pageToken) {
+    let youtubeAPI = `https://www.googleapis.com/youtube/v3/playlistItems?key=${keys.API_KEY}&part=snippet&maxResults=50`;
+    if (pageToken) youtubeAPI += `&pageToken=${pageToken}`;
 
     request(`${youtubeAPI}&playlistId=${playlistId}`, { json: true }, async (err, res, body) => {
         if (err) { return console.log(err); }
+        const nextPageToken = body.nextPageToken;
         const videoIds = body.items.map(item => item.snippet.resourceId.videoId);
         for (let videoId of videoIds) {
-          await downloadVideo(videoId);
+            await downloadVideo(videoId);
         }
+        if (nextPageToken) await downloadPlaylist(playlistId, nextPageToken);
     });
 }
 
-async function downloadVideosByChannel(channelId) {
-    const youtubeAPI = `https://www.googleapis.com/youtube/v3/search?key=${keys.API_KEY}&part=snippet,id&order=date&maxResults=50`;
+async function downloadVideosByChannel(channelId, pageToken) {
+    let youtubeAPI = `https://www.googleapis.com/youtube/v3/search?key=${keys.API_KEY}&part=snippet,id&order=date&maxResults=50`;
+    if (pageToken) youtubeAPI += `&pageToken=${pageToken}`;
 
     request(`${youtubeAPI}&channelId=${channelId}`, { json: true }, async (err, res, body) => {
         if (err) { return console.log(err); }
+        const nextPageToken = body.nextPageToken;
         const videoIds = body.items.map(item => item.id.videoId).filter(id => id!==undefined);
         for (let videoId of videoIds) {
-          await downloadVideo(videoId);
+            await downloadVideo(videoId);
         }
+        if (nextPageToken) await downloadVideosByChannel(channelId, nextPageToken);
     });
 }
 
@@ -52,18 +63,26 @@ async function downloadVideo(videoUrl) {
                 }
             })
             .on("info", (info, format) => {
-                console.log(`${info.title} (${info.video_id}) - ${info.author.name} (${info.author.id})`);
+                console.log(`\n${info.title} (${info.video_id}) - ${info.author.name} (${info.author.id})`);
                 const title = encodeTitle(`${info.title}-${info.video_id}`);
-        
+
                 // Convert to mp3
-                if (ONLY_AUDIO) ffmpeg(stream).audioBitrate(128).save(`downloaded/${title}.mp3`);
+                if (ONLY_AUDIO && !fs.existsSync(`downloaded/${title}.mp3`)) {
+                    ffmpeg(stream).audioBitrate(192).save(`downloaded/${title}.mp3`);
+                }
         
                 // Save to mp4
-                else stream.pipe(fs.createWriteStream(`downloaded/${title}.mp4`));
+                else if (!ONLY_AUDIO && !fs.existsSync(`downloaded/${title}.mp4`)) {
+                    stream.pipe(fs.createWriteStream(`downloaded/${title}.mp4`));
+                }
+                else {
+                    console.log(`  File exists`);
+                    resolve();
+                }
             })
             .on("progress", (chunkByteLength, totalBytesDownloaded, totalBytes) => {
                 readline.cursorTo(process.stdout, 0);
-                process.stdout.write(`  ${ Math.round(totalBytesDownloaded/totalBytes*100) }% of ${Math.round(totalBytes/1024/8)} KB downloaded`);
+                process.stdout.write(`  ${ Math.round(totalBytesDownloaded/totalBytes*100) }% downloaded`);
             })
             .on("end", () => {
                 console.log(`\nDone: ${(Date.now() - start) / 1000}s`);
