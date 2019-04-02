@@ -17,7 +17,9 @@ const ONLY_AUDIO = true;
 // Clear English Corner with Keenyn Rhodes
 //downloadVideosByChannel("UCNmQim1VX0mtyRH8Oe7bSSA"); 
 // Speak Confident English
-//downloadVideosByChannel("UCEFLuo9AR7268-qJj1FkmSw"); 
+downloadVideosByChannel("UCEFLuo9AR7268-qJj1FkmSw"); 
+
+let num = 1;
 
 async function downloadPlaylist(playlistId, pageToken) {
     let youtubeAPI = `https://www.googleapis.com/youtube/v3/playlistItems?key=${keys.API_KEY}&part=snippet&maxResults=50`;
@@ -63,7 +65,8 @@ async function downloadVideo(videoUrl) {
                 }
             })
             .on("info", (info, format) => {
-                console.log(`\n${info.title} (${info.video_id}) - ${info.author.name} (${info.author.id})`);
+                console.log(`\n${num}: ${info.title} (${info.video_id}) - ${info.author.name} (${info.author.id})`);
+                num += 1;
                 const title = encodeTitle(`${info.title}-${info.video_id}`);
 
                 // Convert to mp3
@@ -86,6 +89,10 @@ async function downloadVideo(videoUrl) {
             })
             .on("end", () => {
                 console.log(`\nDone: ${(Date.now() - start) / 1000}s`);
+                resolve();
+            })
+            .on("error", (e) => {
+                console.error(`\nERROR: ${error}`);
                 resolve();
             });
     });
