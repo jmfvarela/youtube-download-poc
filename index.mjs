@@ -17,7 +17,9 @@ const ONLY_AUDIO = true;
 // Clear English Corner with Keenyn Rhodes
 //downloadVideosByChannel("UCNmQim1VX0mtyRH8Oe7bSSA"); 
 // Speak Confident English
-downloadVideosByChannel("UCEFLuo9AR7268-qJj1FkmSw"); 
+//downloadVideosByChannel("UCEFLuo9AR7268-qJj1FkmSw"); 
+// Speak English With Vanessa
+downloadVideosByChannel("UCxJGMJbjokfnr2-s4_RXPxQ");
 
 let num = 1;
 
@@ -91,7 +93,7 @@ async function downloadVideo(videoUrl) {
                 console.log(`\nDone: ${(Date.now() - start) / 1000}s`);
                 resolve();
             })
-            .on("error", (e) => {
+            .on("error", (error) => {
                 console.error(`\nERROR: ${error}`);
                 resolve();
             });
