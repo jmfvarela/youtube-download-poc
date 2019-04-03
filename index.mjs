@@ -19,7 +19,7 @@ const ONLY_AUDIO = true;
 // Speak Confident English
 //downloadVideosByChannel("UCEFLuo9AR7268-qJj1FkmSw"); 
 // Speak English With Vanessa
-downloadVideosByChannel("UCxJGMJbjokfnr2-s4_RXPxQ");
+//downloadVideosByChannel("UCxJGMJbjokfnr2-s4_RXPxQ");
 
 let num = 1;
 
